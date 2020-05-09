@@ -2,10 +2,9 @@
 
 OpenGLWindow::OpenGLWindow()
 {
-}
-
-OpenGLWindow::~OpenGLWindow()
-{
+  QSurfaceFormat format;
+  format.setSamples(16);
+  setFormat(format);
 }
 
 void OpenGLWindow::initializeGL()
@@ -13,41 +12,50 @@ void OpenGLWindow::initializeGL()
   glClearColor(0, 0, 0, 0);
 
   glEnable(GL_DEBUG_OUTPUT); // Debug messages are produced by a debug context
-
-//  glShadeModel(GL_SMOOTH);
+  glEnable(GL_MULTISAMPLE); // Enable antialiasing
 }
 
-void OpenGLWindow::resizeGL(int w, int h)
+void OpenGLWindow::resizeGL(int width, int height)
 {
-  int side = qMin(w, h);
-  glViewport((w - side) / 2, (h - side) / 2, side, side);
+  glViewport(0, 0, width, height);
 
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
-
-  glOrtho(-0.5, +0.5, -0.5, +0.5, 4.0, 15.0);
-
-  glMatrixMode(GL_MODELVIEW);
+  glOrtho(0.0f, width, height, 0.0f, 0.0f, 1.0f);
 }
 
 void OpenGLWindow::paintGL()
 {
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
   QOpenGLPaintDevice device;
   device.setSize(QSize(width(), height()));
   QPainter painter(&device);
-  painter.beginNativePainting(); // Start using painter
+  /* NOTE: The default coordinate system of a paint device
+   * has its origin at the top-left corner.
+   * The X values increase to the right and the Y values increase downwards
+   */
   painter.setPen(QColor(255, 255, 255));
-
+  painter.setRenderHints(QPainter::Antialiasing | QPainter::TextAntialiasing);
   // Draw the X Axis line and text
   drawAbscissa(painter);
   // Draw the Y Axis line and text
   drawOrdinate(painter);
-  painter.endNativePainting(); // Finish using painter
 
-  glLoadIdentity();
+  painter.beginNativePainting(); // Start OpenGL drawing
+  glMatrixMode(GL_MODELVIEW);
+  glPushMatrix();
+
+  glBegin(GL_QUADS);
+      glColor4f(255, 0, 0, 255);
+      glVertex2f(300,300);
+      glVertex2f(500,300);
+      glVertex2f(500,500);
+      glVertex2f(300,500);
+  glEnd();
+
+  glPopMatrix();
+  painter.endNativePainting(); // Finish OpenGL drawing
 }
 
 void OpenGLWindow::drawAbscissa(QPainter &painter)
@@ -82,3 +90,7 @@ void OpenGLWindow::drawOrdinate(QPainter &painter)
   painter.restore(); // Pop Matrix
 }
 
+OpenGLWindow::~OpenGLWindow()
+{
+  makeCurrent();
+}

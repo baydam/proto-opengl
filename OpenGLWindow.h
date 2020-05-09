@@ -3,6 +3,7 @@
 #include <QOpenGLWindow>
 #include <QOpenGLPaintDevice>
 #include <QPainter>
+#include <QGLFormat>
 
 class OpenGLWindow : public QOpenGLWindow
 {
@@ -35,6 +36,5 @@ private:
 
   const int Y_UNIT = 10; // Y Axis interval unit
   const int Y_MAX = 100; // Maximun X Axis value
-
 
 };
